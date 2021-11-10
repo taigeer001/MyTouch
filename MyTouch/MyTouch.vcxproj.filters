@@ -18,30 +18,60 @@
     <ClCompile Include="MyTouch.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="TouchData.cpp">
+    <ClCompile Include="helper.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="Rawimput.cpp">
+    <ClCompile Include="type.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="Gesture.cpp">
+    <ClCompile Include="graphics.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="Drawblock.cpp">
+    <ClCompile Include="win.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="widget.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="handler.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="parser.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="plant.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="module.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="TouchData.h">
+    <ClInclude Include="helper.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="Rawimput.h">
+    <ClInclude Include="type.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="Gesture.h">
+    <ClInclude Include="graphics.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="Drawblock.h">
+    <ClInclude Include="win.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="widget.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="handler.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="parser.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="plant.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="module.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

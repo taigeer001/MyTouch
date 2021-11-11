@@ -14,7 +14,7 @@ void Widget::Initialization() {
     while (!hwnd) Sleep(0);
 }
 
-void Widget::Show(BOOL v) {
+void Widget::Show(byte v) {
     ShowWindow(hwnd, v);
     UpdateWindow(hwnd);
 }
@@ -157,50 +157,62 @@ void Factory::OnPoint(TouchPoint& point) {
         case InjectType::None:
             break;
         case InjectType::LeftDown:
+            #ifdef _DEBUG
             std::cout << "leftdown" << std::endl;
+            #endif
             mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0);
             break;
         case InjectType::LeftUp:
+            #ifdef _DEBUG
             std::cout << "leftup" << std::endl;
+            #endif
             mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
             break;
         case InjectType::RightDown:
+            #ifdef _DEBUG
             std::cout << "rightdown" << std::endl;
+            #endif
             mouse_event(MOUSEEVENTF_RIGHTDOWN, 0, 0, 0, 0);
             break;
         case InjectType::RightUp:
+            #ifdef _DEBUG
             std::cout << "rightup" << std::endl;
+            #endif
             mouse_event(MOUSEEVENTF_RIGHTUP, 0, 0, 0, 0);
             break;
         case InjectType::Move:
-            //std::cout << "move: " << speed << std::endl;
-            //cursor->Pos(point.x, point.y);
             cursor->Move((int16)(ijd[i].Point.ax * speed), (int16)(ijd[i].Point.ay * speed));
             break;
         case InjectType::To:
             break;
         case InjectType::KeyDown:
+            #ifdef _DEBUG
             std::cout << "keydown" << std::endl;
+            #endif
             ijd[i].Hot->OnDown(&ijd[i].Point);
             break;
         case InjectType::KeyUp:
+            #ifdef _DEBUG
             std::cout << "keyup" << std::endl;
+            #endif
             ijd[i].Hot->OnUp(&ijd[i].Point);
             break;
         case InjectType::KeyHold:
+            #ifdef _DEBUG
             std::cout << "keyhold" << std::endl;
+            #endif
             ijd[i].Hot->OnHold(&ijd[i].Point);
             break;
         case InjectType::KeyMove:
+            #ifdef _DEBUG
             std::cout << "keymove" << std::endl;
+            #endif
             ijd[i].Hot->OnMove(&ijd[i].Point);
             break;
         default:
             break;
         }
     }
-    //std::cout << "point: " << (int)point.sta << "," << (int)point.first << "," << point.time << "," << ijd->Length() << std::endl;
-    //cursor->Move(1, 1);
 }
 
 WidgetHotspot::WidgetHotspot() :name(L"") {}

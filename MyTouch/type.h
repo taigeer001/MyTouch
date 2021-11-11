@@ -353,7 +353,7 @@ public:
 	virtual void Handler(IHandler*) = 0;
 	virtual void Initialization() = 0;
 	virtual void OnPaint() = 0;
-	virtual void Show(BOOL) = 0;
+	virtual void Show(byte) = 0;
 };
 
 template<typename T>

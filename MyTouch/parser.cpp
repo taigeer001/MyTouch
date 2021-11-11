@@ -36,6 +36,13 @@ byte Keycode(const char* n) {
 	return keycode[n];
 }
 
+byte CodeOrKey(pugi::xml_node* node) {
+	const char* str = node->attribute("key").as_string();
+	byte code = Keycode(str);
+	if (code != 0) code;
+	return node->attribute("code").as_uint(0);
+}
+
 float32 ScreenY(float32 height, pugi::xml_attribute* attr) {
 	const char* str = attr->as_string();
 	float32 sy = (float32)GetSystemMetrics(SM_CYSCREEN);

@@ -138,6 +138,8 @@ void InputAndCursor::Move(INT16 x, INT16 y) {
     HDC mdc = CreateCompatibleDC(hdc);
     HBITMAP hbitmap = CreateCompatibleBitmap(hdc, ps.cx, ps.cy);
     HGDIOBJ hobj = SelectObject(mdc, hbitmap);
+    hcur.ptScreenPos.x = hcur.ptScreenPos.x - 10;
+    hcur.ptScreenPos.y = hcur.ptScreenPos.y - 10;
     if (hcur.hCursor) cursor = hcur.hCursor;
     DrawIconEx(mdc, 0, 0, cursor, 0, 0, 0, NULL, DI_IMAGE);
     UpdateLayeredWindow(hwnd, hdc, &hcur.ptScreenPos, &ps, mdc, &psrc, 0, &blend, ULW_OPAQUE);// ULW_ALPHA);

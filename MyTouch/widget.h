@@ -1,4 +1,5 @@
 #pragma once
+#pragma warning(disable: 4250)
 
 #include <vector>
 #include "win.h"
@@ -62,10 +63,10 @@ public:
 		DpiRectangle::Point(x, y);
 		if (handler) OnPaint();
 	}
-	virtual void Initialization();
-	virtual void Show(BOOL);
-	virtual void Refresh() {};
-	virtual void OnPaint() {};
+	void Initialization() override;
+	void Show(byte) override;
+	void OnPaint() override {}
+	virtual void Refresh() {}
 protected:
 	static DWORD WINAPI Msgloop(LPVOID);
 	void UpdateLayered();

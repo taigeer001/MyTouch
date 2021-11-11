@@ -9,6 +9,8 @@
 
 byte Keycode(const char*);
 
+byte CodeOrKey(pugi::xml_node*);
+
 float32 ScreenX(float32, pugi::xml_attribute*);
 
 float32 ScreenY(float32, pugi::xml_attribute*);

@@ -115,6 +115,12 @@ public:
 	void OnPaint(IGraphics*) override;
 };
 
+class Symbol :public Letter {
+public:
+	using Letter::Letter;
+	void OnPaint(IGraphics*) override;
+};
+
 class Capskey :public IKey {
 protected:
 	byte code = 0;
@@ -133,6 +139,14 @@ class Keypad :public HotspotGroup, public IMergeNode {
 public:
 	forceinline void OnMerge(uint16, void*) override {
 		OnPaint();
+	}
+	void Show(byte v) override {
+		HotspotGroup::Show(v);
+		size_t len = button.size();
+		::Hotspot** d = button.data();
+		for (size_t i = 0; i < len; i++) {
+			d[i]->Enable(v);
+		}
 	}
 };
 

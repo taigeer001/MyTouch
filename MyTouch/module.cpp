@@ -1,6 +1,8 @@
 #include "module.h"
 #include "helper.h"
 
+#pragma warning(disable: 4003)
+
 void IKey::Initialization() {
 	parent->Handler()->Hotspot("key", this);
 }
@@ -110,6 +112,25 @@ void Letter::OnPaint(IGraphics* g) {
 		g->Brush(.0f, .0f, .0f, .5f);
 		g->FillRectangle(Rx(), Ry(), Width(), Height());
 		g->Brush(1.0f, 1.0f, 1.0f, .85f);
+		g->DrawTextW(*pt ? name : name1, Rx(), Ry(), Width(), Height());
+	}
+	else {
+		g->Brush(.0f, .0f, .0f, .5f);
+		g->FillRectangle(Rx(), Ry(), Width(), Height());
+		g->Brush(1.0f, 1.0f, 1.0f, .5f);
+		g->FillRectangle(Rx(), Ry(), Width(), Height());
+		g->Brush(.0f, .0f, .0f, .85f);
+		g->DrawTextW(*pt ? name1 : name, Rx(), Ry(), Width(), Height());
+	}
+}
+
+void Symbol::OnPaint(IGraphics* g) {
+	if (*status) {
+		g->Brush(1.0f, 1.0f, 1.0f, .5f);
+		g->FillRectangle(Rx(), Ry(), Width(), Height());
+		g->Brush(.0f, .0f, .0f, .5f);
+		g->FillRectangle(Rx(), Ry(), Width(), Height());
+		g->Brush(1.0f, 1.0f, 1.0f, .85f);
 		g->DrawTextW(*pt ? name : name1, Rx() - g->FontSize() / 2.0f, Ry() + g->FontSize() / 1.6f, Width(), Height());
 		g->Brush(1.0f, 1.0f, 1.0f, .35f);
 		g->DrawTextW(*pt ? name1 : name, Rx() + g->FontSize() / 2.0f, Ry() - g->FontSize() / 1.6f, Width(), Height());
@@ -170,8 +191,7 @@ public:
 		return Equal(node.name(), "key");
 	}
 	void* Create(pugi::xml_node & node) override {
-		const char* str = node.attribute("code").as_string();
-		byte code = Keycode(str);
+		byte code = CodeOrKey(&node);
 		if (code == 0) return nullptr;
 		float32 w = node.attribute("width").as_float(46.0f);
 		float32 h = node.attribute("height").as_float(46.0f);
@@ -223,8 +243,7 @@ public:
 		return Equal(node.name(), "letter");
 	}
 	void* Create(pugi::xml_node & node) override {
-		const char* str = node.attribute("code").as_string();
-		byte code = Keycode(str);
+		byte code = CodeOrKey(&node);
 		if (code == 0) return nullptr;
 		float32 w = node.attribute("width").as_float(46.0f);
 		float32 h = node.attribute("height").as_float(46.0f);
@@ -239,14 +258,34 @@ public:
 	InitTemplate(Letter);
 };
 
+PClass(Symbol) {
+public:
+	byte Is(pugi::xml_node & node)override {
+		return Equal(node.name(), "symbol");
+	}
+	void* Create(pugi::xml_node & node) override {
+		byte code = CodeOrKey(&node);
+		if (code == 0) return nullptr;
+		float32 w = node.attribute("width").as_float(46.0f);
+		float32 h = node.attribute("height").as_float(46.0f);
+		Symbol* t = new Symbol(
+			(uint16)w, (uint16)h,
+			node.text().as_string(),
+			node.attribute("text").as_string()
+		);
+		t->Code(code);
+		return t;
+	}
+	InitTemplate(Symbol);
+};
+
 PClass(Capskey) {
 public:
 	byte Is(pugi::xml_node & node)override {
 		return Equal(node.name(), "caps");
 	}
 	void* Create(pugi::xml_node & node) override {
-		const char* str = node.attribute("code").as_string();
-		byte code = Keycode(str);
+		byte code = CodeOrKey(&node);
 		if (code == 0) return nullptr;
 		float32 w = node.attribute("width").as_float(46.0f);
 		float32 h = node.attribute("height").as_float(46.0f);
@@ -264,7 +303,7 @@ public:
 	}
 	void* Create(pugi::xml_node & node) override {
 		Keypad* k = new Keypad;
-		k->Size(0.1, 0.1);
+		k->Size(0.1f, 0.1f);
 		return k;
 	}
 	void Init(pugi::xml_node & node, void* o, IDocumentParser * dp) override {
@@ -321,5 +360,7 @@ RClass(Wheel);
 PChild(Keypad, Wheel);
 RClass(Letter);
 PChild(Keypad, Letter);
+RClass(Symbol);
+PChild(Keypad, Symbol);
 RClass(Capskey);
 PChild(Keypad, Capskey);

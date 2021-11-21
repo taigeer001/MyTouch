@@ -160,25 +160,25 @@ void Factory::OnPoint(TouchPoint& point) {
             #ifdef _DEBUG
             std::cout << "leftdown" << std::endl;
             #endif
-            mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0);
+            mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, EVENT_FID);
             break;
         case InjectType::LeftUp:
             #ifdef _DEBUG
             std::cout << "leftup" << std::endl;
             #endif
-            mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
+            mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, EVENT_FID);
             break;
         case InjectType::RightDown:
             #ifdef _DEBUG
             std::cout << "rightdown" << std::endl;
             #endif
-            mouse_event(MOUSEEVENTF_RIGHTDOWN, 0, 0, 0, 0);
+            mouse_event(MOUSEEVENTF_RIGHTDOWN, 0, 0, 0, EVENT_FID);
             break;
         case InjectType::RightUp:
             #ifdef _DEBUG
             std::cout << "rightup" << std::endl;
             #endif
-            mouse_event(MOUSEEVENTF_RIGHTUP, 0, 0, 0, 0);
+            mouse_event(MOUSEEVENTF_RIGHTUP, 0, 0, 0, EVENT_FID);
             break;
         case InjectType::Move:
             cursor->Move((int16)(ijd[i].Point.ax * speed), (int16)(ijd[i].Point.ay * speed));

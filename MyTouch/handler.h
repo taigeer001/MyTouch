@@ -52,8 +52,30 @@ protected:
 public:
 	InjectMouse();
 	~InjectMouse();
-	virtual const char* TypeName() override { return "mouse"; };
-	virtual InjectData* StartInput(PointTable*, PointInfo*, TouchPoint*) override;
-	virtual InjectData* Input(PointTable*, PointInfo*, TouchPoint*)  override;
-	virtual InjectData* CloseInput(PointTable*, PointInfo*, TouchPoint*)  override;
+	const char* TypeName() override { return "mouse"; };
+	InjectData* StartInput(PointTable*, PointInfo*, TouchPoint*) override;
+	InjectData* Input(PointTable*, PointInfo*, TouchPoint*)  override;
+	InjectData* CloseInput(PointTable*, PointInfo*, TouchPoint*)  override;
+};
+
+
+class TestMouse :public IInject, StackId {
+protected:
+	struct Status {
+		uint16 id = 0;
+		byte code = 0;
+		int16 x = 0, y = 0;
+	};
+	InjectData cache;
+	Status* sta = nullptr, * zero = nullptr;
+	forceinline BYTE PointType(TouchPoint* tp) {
+		return (zero->y - (zero->x - tp->x)) > tp->y;
+	}
+public:
+	TestMouse();
+	~TestMouse();
+	const char* TypeName() override { return "mouse"; };
+	InjectData* StartInput(PointTable*, PointInfo*, TouchPoint*) override;
+	InjectData* Input(PointTable*, PointInfo*, TouchPoint*)  override;
+	InjectData* CloseInput(PointTable*, PointInfo*, TouchPoint*)  override;
 };

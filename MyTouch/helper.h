@@ -2,11 +2,14 @@
 
 #include <Windows.h>
 
+#define uint unsigned int
 #define int32 INT32
 #define uint16 UINT16
 #define int16 INT16
 #define byte BYTE
 #define float32 FLOAT
+
+#define EVENT_FID 99
 
 #ifdef _MSC_VER_
 #define forceinline __forceinline

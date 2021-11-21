@@ -11,6 +11,7 @@ int main()
 		//DebugDev dbi;
 		//fa.Input(&dbi);
 		InjectMouse ijm;
+		//TestMouse ijm;
 		InjectKey ijk;
 		DocumentParser dp;
 		dp.Open("C:\\Users\\zr\\Downloads\\1\\config.xml");

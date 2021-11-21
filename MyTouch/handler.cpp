@@ -85,8 +85,6 @@ InjectMouse::InjectMouse() {
     cache.Size(2);
     sta = new Status[10];
     zero = &sta[0];
-    //aid = new UINT16[10];
-    //code = new BYTE[10];
 }
 
 InjectMouse::~InjectMouse() {
@@ -133,7 +131,75 @@ InjectData* InjectMouse::CloseInput(PointTable* pt, PointInfo* pi, TouchPoint* t
     if ((id == 0) && (tp->x != zero->x || tp->y != zero->y)) {
         cache.Append(InjectType::Move, tp, tp->x - zero->x, tp->y - zero->y);
         //zero->x = tp->x, zero->y = tp->y;
+        //return &cache;
+    }
+    if (sta[pi->id].code == 1) {
+        cache.Append(InjectType::LeftUp, tp);
+    }
+    else if (sta[pi->id].code == 2) {
+        cache.Append(InjectType::RightUp, tp);
+    }
+    Release(id);
+    return &cache;
+}
+
+
+TestMouse::TestMouse() {
+    Clear();
+    cache.Size(2);
+    sta = new Status[10];
+    zero = &sta[0];
+}
+
+TestMouse::~TestMouse() {
+    delete[] sta;
+}
+
+InjectData* TestMouse::StartInput(PointTable* pt, PointInfo* pi, TouchPoint* tp) {
+    cache.Length(0);
+    uint16 id = Id();
+    sta[pi->id].id = id;
+    Occupy(id);
+    sta[pi->id].x = tp->x, sta[pi->id].y = tp->y;
+    if (id == 0)return &cache;
+    if (id == 1) {
+        zero = &sta[pi->id];
         return &cache;
+    }
+    if (PointType(tp)) {
+        sta[pi->id].code = 2;
+        cache.Append(InjectType::RightDown, tp);
+    }
+    else {
+        sta[pi->id].code = 1;
+        cache.Append(InjectType::LeftDown, tp);
+    }
+    return &cache;
+}
+
+InjectData* TestMouse::Input(PointTable*, PointInfo* pi, TouchPoint* tp) {
+    cache.Length(0);
+    UINT16 id = sta[pi->id].id;
+    if (id != 1 || id == 0) return &cache;
+
+    if (tp->x != zero->x || tp->y != zero->y) {
+        cache.Append(InjectType::Move, tp, tp->x - zero->x, tp->y - zero->y);
+        zero->x = tp->x, zero->y = tp->y;
+    }
+
+    return &cache;
+}
+
+InjectData* TestMouse::CloseInput(PointTable* pt, PointInfo* pi, TouchPoint* tp) {
+    cache.Length(0);
+    UINT16 id = sta[pi->id].id;
+    if (id == 0) {
+
+    }
+    else if ((id == 1) && (tp->x != zero->x || tp->y != zero->y)) {
+        cache.Append(InjectType::Move, tp, tp->x - zero->x, tp->y - zero->y);
+        //zero->x = tp->x, zero->y = tp->y;
+        //return &cache;
     }
     if (sta[pi->id].code == 1) {
         cache.Append(InjectType::LeftUp, tp);

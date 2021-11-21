@@ -7,9 +7,9 @@
 #include "type.h"
 #include "pugixml.hpp"
 
-byte Keycode(const char*);
+int16 Keycode(const char*);
 
-byte CodeOrKey(pugi::xml_node*);
+int16 CodeOrKey(pugi::xml_node*);
 
 float32 ScreenX(float32, pugi::xml_attribute*);
 
@@ -66,7 +66,7 @@ public:\
 	Hotspot* ToHotspot(void* o) override {\
 		return (Hotspot*)(##name##*)o;\
 	}\
-	Widget* ToWidget(void* o) override {\
+	::IWidget* ToWidget(void* o) override {\
 		return (Widget*)(##name##*)o;\
 	}\
 	IMergeNode* ToMerge(void* o) override {\
@@ -96,7 +96,7 @@ public:
 	virtual byte Is(pugi::xml_node&) = 0;
 	virtual void* Create(pugi::xml_node&) = 0;
 	virtual Hotspot* ToHotspot(void* o) = 0;
-	virtual ::Widget* ToWidget(void* o) = 0;
+	virtual ::IWidget* ToWidget(void* o) = 0;
 	virtual IMergeNode* ToMerge(void* o) = 0;
 	virtual void Child(void*, INodeParser*, pugi::xml_node&, void*) {}
 	virtual void Init(pugi::xml_node&, void*, IDocumentParser* dp) {}
@@ -115,7 +115,6 @@ public:
 		return gid;
 	}
 	void AddChild(uint16 i) {
-		if (id == i) return;
 		child.push_back(i);
 		haschild = 1;
 	}
@@ -135,11 +134,11 @@ protected:
 	float32 speed = 2.0f;
 	std::map<std::string, IMergeNode*> merge;
 	std::vector<D*> object;
-	std::vector<Widget*> widget;
+	std::vector<IWidget*> widget;
 	INodeParser* Parser(pugi::xml_node&);
 	virtual void Node(pugi::xml_node&, D* = nullptr);
 public:
-	virtual ::Widget* operator[](size_t n) { return widget[n]; };
+	virtual ::IWidget* operator[](size_t n) { return widget[n]; };
 	virtual size_t Widget() { return widget.size(); };
 	virtual void Analysis();
 	virtual void Loaded();
@@ -174,10 +173,16 @@ public:
 	template<class A, class T> static byte Child() {
 		std::string n1 = GetClassName<A>();
 		std::string n2 = GetClassName<T>();
+#ifndef _WINDOWS
+		std::cout << "child: " << n1 << "," << n2 << std::endl;
+#endif // !_WINDOWS
 		INodeParser* p = FindNode(n1);
 		if (!p) return 0;
 		INodeParser* c = FindNode(n2);
 		if (!c) return 0;
+#ifndef _WINDOWS
+		std::cout << "child id: " << p->Id() << "," << c->Id() << std::endl;
+#endif // !_WINDOWS
 		p->AddChild(c->Id());
 		return 0;
 	}

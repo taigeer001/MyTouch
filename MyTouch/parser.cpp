@@ -5,7 +5,7 @@ std::map<std::string, byte> keycode = {
 	{"backspace",0x08}, {"tab",0x09}, {"clear",0x0C}, {"enter",0x0D}, {"shift",0x10},
 	{"ctrl",0x11}, {"alt",0x12}, {"pause",0x13}, {"caps",0x14}, {"esc",0x1B},
 	{"spacebar",0x20}, {"page_up",0x21}, {"page_down",0x22}, {"end",0x23}, {"home",0x24},
-	{"left_arrow",0x25}, {"up_arrow",0x26}, {"right_arrow",0x27}, {"down_arrow",0x28},
+	{"left",0x25}, {"up",0x26}, {"right",0x27}, {"down",0x28},
 	{"select",0x29}, {"print",0x2A}, {"execute",0x2B}, {"print_screen",0x2C}, {"ins",0x2D},
 	{"del",0x2E}, {"help",0x2F}, {"0",0x30}, {"1",0x31}, {"2",0x32}, {"3",0x33}, {"4",0x34},
 	{"5",0x35}, {"6",0x36}, {"7",0x37}, {"8",0x38}, {"9",0x39}, {"a",0x41}, {"b",0x42},
@@ -31,16 +31,22 @@ std::map<std::string, byte> keycode = {
 	{"/",0xBF}, {"`",0xC0}, {";",0xBA}, {"[",0xDB}, {"\\",0xDC}, {"]",0xDD}, {"'",0xDE}
 };
 
-byte Keycode(const char* n) {
-	if (keycode.count(n) == 0) return 0;
-	return keycode[n];
+int16 Keycode(const char* n) {
+	std::string t(n);
+	if (keycode.count(t) == 0) return -1;
+	return keycode[t];
 }
 
-byte CodeOrKey(pugi::xml_node* node) {
+int16 CodeOrKey(pugi::xml_node* node) {
+	if (node->attribute("key").empty()) {
+		return node->attribute("code").as_uint(0);
+	}
 	const char* str = node->attribute("key").as_string();
-	byte code = Keycode(str);
-	if (code != 0) code;
-	return node->attribute("code").as_uint(0);
+	int16 code = Keycode(str);
+#ifndef _WINDOWS
+	std::cout << str << "," << code << "" << std::endl;
+#endif // !_WINDOWS
+	return code;
 }
 
 float32 ScreenY(float32 height, pugi::xml_attribute* attr) {
@@ -100,6 +106,12 @@ void IDocumentParser::Node(pugi::xml_node& tn, IDocumentParser::D* d) {
 		void* o = np->Create(node);
 		if (!o) continue;
 		object.push_back(new D(node, np, o));
+#ifndef _WINDOWS
+		if (d) {
+			//std::cout << node.name() << "," << d->n.name();
+			//std::cout << " ischild: " << (int)d->p->IsChild(np, node, o) << std::endl;
+		}
+#endif // !_WINDOWS
 		if (d && d->p->IsChild(np, node, o)) d->p->Child(d->o, np, node, o);
 		if (!np->HasChild()) continue;
 		Node(node, object.back());

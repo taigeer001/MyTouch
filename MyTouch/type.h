@@ -273,6 +273,7 @@ public:
 
 class IInputCallback {
 public:
+	virtual void OnInit() {};
 	virtual void OnDisplayChange() {};
 	virtual void OnTimer() {};
 	virtual void OnPoint(TouchPoint&) {};

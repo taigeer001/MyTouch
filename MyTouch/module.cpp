@@ -66,13 +66,13 @@ void MouseKey::Code(uint16 d, uint16 u) {
 
 void MouseKey::OnDown(InjectPoint*) {
 	*status = 1;
-	mouse_event(dcode, 0, 0, 0, 0);
+	mouse_event(dcode, 0, 0, 0, EVENT_FID);
 	if (HasMerge()) CallMerge(status); else parent->OnPaint();
 }
 
 void MouseKey::OnUp(InjectPoint*) {
 	*status = 0;
-	mouse_event(ucode, 0, 0, 0, 0);
+	mouse_event(ucode, 0, 0, 0, EVENT_FID);
 	if (HasMerge()) CallMerge(status); else parent->OnPaint();
 }
 
@@ -146,6 +146,19 @@ void Symbol::OnPaint(IGraphics* g) {
 		g->DrawTextW(*pt ? name : name1, Rx() + g->FontSize() / 2.0f, Ry() - g->FontSize() / 1.6f, Width(), Height());
 	}
 }
+PClass(WidgetBox) {
+public:
+	byte Is(pugi::xml_node & node)override {
+		return Equal(node.name(), "space");
+	}
+	void* Create(pugi::xml_node & node) override {
+		return new WidgetBox;
+	}
+	void Child(void* o0, INodeParser * np, pugi::xml_node & node, void* o1) override {
+		WidgetBox* s = (WidgetBox*)o0;
+		s->Widget(np->ToWidget(o1));
+	}
+};
 
 PClass(SelectBox) {
 public:
@@ -190,9 +203,9 @@ public:
 	byte Is(pugi::xml_node & node)override {
 		return Equal(node.name(), "key");
 	}
-	void* Create(pugi::xml_node & node) override {
-		byte code = CodeOrKey(&node);
-		if (code == 0) return nullptr;
+	void* Create(pugi::xml_node& node) override {
+		int16 code = CodeOrKey(&node);
+		if (code < 0) return nullptr;
 		float32 w = node.attribute("width").as_float(46.0f);
 		float32 h = node.attribute("height").as_float(46.0f);
 		Key* t = new Key((uint16)w, (uint16)h, node.text().as_string());
@@ -344,12 +357,17 @@ public:
 		mn->Merge(t);
 	}
 };
-
+RClass(WidgetBox);
 RClass(SelectBox);
+PChild(SelectBox, SelectBox);
+PChild(SelectBox, WidgetBox);
+PChild(WidgetBox, SelectBox);
 RClass(Button);
 PChild(SelectBox, Button);
+PChild(WidgetBox, Button);
 RClass(Keypad);
 PChild(SelectBox, Keypad);
+PChild(WidgetBox, Keypad);
 RClass(Key);
 PChild(Keypad, Key);
 RClass(FnKey);

@@ -7,12 +7,62 @@
 #include "type.h"
 #include "parser.h"
 
-class SelectBox : public IMergeNode {
+class WidgetBox : public IWidget, public IMergeNode {
 protected:
+	IHandler* parent = nullptr;
+	size_t length = 0;
+	IWidget** widget = nullptr;
+public:
+	IHandler* Handler() override {
+		return parent;
+	}
+	void Handler(IHandler* h) override {
+		parent = h;
+	}
+	void Initialization() override {}
+	void OnPaint() override {}
+	void Show(byte s) override {
+		for (size_t i = 0; i < length; i++) {
+			widget[i]->Show(s);
+		}
+	}
+	void Widget(IWidget* wg) {
+		for (size_t i = 0; i < length; i++) {
+			if (widget[i] == wg) return;
+		}
+		widget = Extension<IWidget>(widget, length);
+		widget[length++] = wg;
+	}
+};
+
+class SelectBox : public IWidget, public IMergeNode {
+protected:
+	IHandler* parent = nullptr;
 	size_t wid = 0;
 	size_t length = 0;
 	IWidget** widget = nullptr;
 public:
+	IHandler* Handler() override {
+		return parent;
+	}
+	void Handler(IHandler* h) override {
+		parent = h;
+	}
+	void Initialization() override {}
+	void OnPaint() override {}
+	void Show(byte s) override {
+		if (!s) {
+			for (size_t i = 0; i < length; i++) {
+				widget[i]->Show(0);
+			}
+			return;
+		}
+		widget[wid]->Show(1);
+#ifndef _WINDOWS
+		std::cout << "show: " << (int)s << std::endl;
+#endif // !_WINDOWS
+
+	}
 	void Widget(IWidget* wg) {
 		for (size_t i = 0; i < length; i++) {
 			if (widget[i] == wg) return;
@@ -28,11 +78,14 @@ public:
 	}
 	void OnMerge(uint16, void* o) override {
 		int32 v = *(int32*)o;
+#ifndef _WINDOWS
+		std::cout << "OnMerge: " << length << std::endl;
+#endif // !_WINDOWS
 		if (v == 1) return;
+		if (++wid == length) wid = 0;
 		for (size_t i = 0; i < length; i++) {
 			widget[i]->Show(i == wid);
 		}
-		if (++wid == length) wid = 0;
 	}
 };
 

@@ -136,4 +136,8 @@ public:
 		status = 0;
 		OnPaint();
 	};
+	void Show(byte s) override {
+		Enable(s);
+		Widget::Show(s);
+	}
 };

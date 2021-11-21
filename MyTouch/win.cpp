@@ -11,6 +11,9 @@ LRESULT CALLBACK QuitProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
         PostQuitMessage(0);
         break;
     }
+#ifndef _WINDOWS
+    //std::cout << "msg1: " << std::hex << (int)msg << std::endl;
+#endif // !_WINDOWS
     return DefWindowProc(hWnd, msg, wParam, lParam);
 }
 
@@ -18,6 +21,9 @@ IInput* input = nullptr;
 LRESULT CALLBACK MsgProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
     switch (msg) {
     case WM_TIMER:
+#ifndef _WINDOWS
+        std::cout << "callback: timer" << std::endl;
+#endif // !_WINDOWS
         if (!input) break;
         input->Callback()->OnTimer();
         break;
@@ -29,6 +35,9 @@ LRESULT CALLBACK MsgProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
         PostQuitMessage(0);
         break;
     }
+#ifndef _WINDOWS
+    //std::cout << "msg2: " << std::hex << (int)msg << std::endl;
+#endif // !_WINDOWS
     return DefWindowProc(hWnd, msg, wParam, lParam);
 }
 
@@ -45,6 +54,16 @@ WNDCLASSEXW* DefaultClass() {
     wcex->lpszMenuName = L"";
     wcex->hIconSm = 0;
     return wcex;
+}
+
+HWND DefaultWindow() {
+    HINSTANCE hInstance = GetModuleHandle(0);
+    HWND hwnd = CreateWindowW(szDrawingClass, szTitle, WS_OVERLAPPEDWINDOW,
+        CW_USEDEFAULT, 0, 500, 300, nullptr, nullptr, hInstance, nullptr);
+    if (!hwnd) {
+        return 0;
+    }
+    return hwnd;
 }
 
 HWND DrawingWindow() {
@@ -92,6 +111,24 @@ int WindowsInit() {
 }
 int status = WindowsInit();
 
+DWORD __stdcall InputAndCursor::CursorChange(LPVOID param) {
+    InputAndCursor* _this = (InputAndCursor*)param;
+    while (true) {
+        if (_this->ismove) {
+#ifndef _WINDOWS
+            //std::cout << "over time 1" << std::endl;
+#endif // !_WINDOWS
+            CURSORINFO hcur;
+            hcur.cbSize = sizeof(hcur);
+            GetCursorInfo(&hcur);
+            if (_this->CursorChange(&hcur)) _this->Move(0, 0);
+            _this->ismove = 0;
+        }
+        Sleep(33);
+    }
+    return 0;
+}
+
 InputAndCursor::~InputAndCursor() {
     DeleteObject(hdc);
     CloseWindow(hwnd);
@@ -104,11 +141,20 @@ void InputAndCursor::Start() {
         LastIdThrow(L"[RegisterPointerInputTarget] %d.", GetLastError());
     }
     input = this;
-    SetTimer(hwnd, 1, 1000, NULL);
+    //auto timer = SetTimer(hwnd, 1, 100, NULL);
     ShowCursor(FALSE);
     MSG msg;
     TouchPoint tp;
-    mouse_event(MOUSEEVENTF_MOVE | MOUSEEVENTF_ABSOLUTE, 0, 0, 0, 0);
+
+    //ShowCursor(1);
+    INT16 width = GetSystemMetrics(SM_CXSCREEN);
+    INT16 height = GetSystemMetrics(SM_CYSCREEN);
+    mouse_event(MOUSEEVENTF_MOVE | MOUSEEVENTF_ABSOLUTE, 300 * 0xFFFF / width, 300 * 0xFFFF / height, 0, 0);
+
+    //cursor = LoadCursor(nullptr, IDC_ARROW);
+    HANDLE thread = CreateThread(NULL, 0, CursorChange, this, 0, NULL);
+
+    callback->OnInit();
     while (GetMessage(&msg, nullptr, 0, 0)) {
         switch (msg.message) {
         case WM_POINTERENTER:
@@ -117,10 +163,16 @@ void InputAndCursor::Start() {
         case WM_POINTERDOWN:
         case WM_POINTERUPDATE:
         case WM_POINTERUP:
+            //msg.wParam = ((uint64_t)msg.wParam) & (~0x20000000u);
             tp = msg;
+#ifndef _WINDOWS
+            //std::cout << (int)((((uint64_t)msg.wParam) & 0x20000000u) == 0x20000000u) << "," << tp.id << "," << (int)tp.first << "," << (int)tp.sta << "," << tp.x << "," << tp.y << std::endl;
+#endif // !_WINDOWS
             callback->OnPoint(tp);
             if (tp.x < 10 && tp.y < 10) {
+                //KillTimer(hwnd, timer);
                 UnregisterPointerInputTarget(hwnd, PT_TOUCH);
+                CloseHandle(thread);
                 exit(0);
             }
             continue;
@@ -131,18 +183,31 @@ void InputAndCursor::Start() {
 }
 
 void InputAndCursor::Move(INT16 x, INT16 y) {
-    mouse_event(MOUSEEVENTF_MOVE, x, y, 0, 0);
-    CURSORINFO hcur;
+    ismove = true;
+    //mouse_event(MOUSEEVENTF_MOVE, x, y, 0, EVENT_FID);
+    /*CURSORINFO hcur;
     hcur.cbSize = sizeof(hcur);
-    GetCursorInfo(&hcur);
+    GetCursorInfo(&hcur);*/
     HDC mdc = CreateCompatibleDC(hdc);
     HBITMAP hbitmap = CreateCompatibleBitmap(hdc, ps.cx, ps.cy);
     HGDIOBJ hobj = SelectObject(mdc, hbitmap);
-    hcur.ptScreenPos.x = hcur.ptScreenPos.x - 10;
-    hcur.ptScreenPos.y = hcur.ptScreenPos.y - 10;
-    if (hcur.hCursor) cursor = hcur.hCursor;
+    POINT hp;
+    GetCursorPos(&hp);
+    //ShowCursor(1);
+    SetCursorPos(hp.x + x, hp.y + y);
+    //HCURSOR hc = LoadCursor(nullptr, IDC_ARROW);
+    //DrawIconEx(mdc, 0, 0, hc, 0, 0, 0, NULL, DI_IMAGE);
+
+    //SetCursor(hc);
+    //CursorChange(&hcur);
+    //SetSystemCursor(hc)
+    /*SetCursorPos(hcur.ptScreenPos.x + x, hcur.ptScreenPos.y + y);
+    CursorChange(&hcur);*/
+    hp.x = hp.x - px, hp.y = hp.y - py;
     DrawIconEx(mdc, 0, 0, cursor, 0, 0, 0, NULL, DI_IMAGE);
-    UpdateLayeredWindow(hwnd, hdc, &hcur.ptScreenPos, &ps, mdc, &psrc, 0, &blend, ULW_OPAQUE);// ULW_ALPHA);
+    //UpdateLayeredWindow(hwnd, hdc, &hcur.ptScreenPos, &ps, mdc, &psrc, 0, &blend, ULW_OPAQUE);
+    //UpdateLayeredWindow(hwnd, hdc, &hcur.ptScreenPos, &ps, mdc, &psrc, 0, &blend, ULW_ALPHA);
+    UpdateLayeredWindow(hwnd, hdc, &hp, &ps, mdc, &psrc, 0, &blend, ULW_ALPHA);
     SelectObject(hdc, hobj);
     DeleteObject(mdc);
     DeleteObject(hbitmap);
@@ -151,8 +216,6 @@ void InputAndCursor::Move(INT16 x, INT16 y) {
 void InputAndCursor::Pos(INT16 x, INT16 y) {
     INT16 width = GetSystemMetrics(SM_CXSCREEN);
     INT16 height = GetSystemMetrics(SM_CYSCREEN);
-    x = x - 100;
-    y = y - 100;
     mouse_event(MOUSEEVENTF_MOVE | MOUSEEVENTF_ABSOLUTE, x * 0xFFFF / width, y * 0xFFFF / height, 0, 0);
     CURSORINFO hcur;
     hcur.cbSize = sizeof(hcur);
@@ -160,7 +223,7 @@ void InputAndCursor::Pos(INT16 x, INT16 y) {
     HDC mdc = CreateCompatibleDC(hdc);
     HBITMAP hbitmap = CreateCompatibleBitmap(hdc, ps.cx, ps.cy);
     HGDIOBJ hobj = SelectObject(mdc, hbitmap);
-    if (hcur.hCursor) cursor = hcur.hCursor;
+    CursorChange(&hcur);
     DrawIconEx(mdc, 0, 0, cursor, 0, 0, 0, NULL, DI_IMAGE);
     UpdateLayeredWindow(hwnd, hdc, &hcur.ptScreenPos, &ps, mdc, &psrc, 0, &blend, ULW_ALPHA);
     SelectObject(hdc, hobj);
@@ -173,6 +236,7 @@ void InputAndCursor::Initialization() {
     iac_mutex.lock();
     if (hwnd) { iac_mutex.unlock();return; };
     hwnd = MsgWindow();
+    //hwnd = DefaultWindow();
     iac_mutex.unlock();
     if (!hwnd) throw "cursor create error.";
     ShowWindow(hwnd, 1);
@@ -274,7 +338,7 @@ void DebugDev::Start() {
         LastIdThrow(L"[RegisterPointerInputTarget] %d.", GetLastError());
     }
     input = this;
-    SetTimer(hwnd, 1, 1000, NULL);
+    //SetTimer(hwnd, 1, 1000, NULL);
     ShowCursor(FALSE);
     MSG msg;
     TouchPoint tp;

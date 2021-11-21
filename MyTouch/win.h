@@ -5,6 +5,8 @@
 #include "helper.h"
 #include "type.h"
 
+LPCWSTR GetTouchClass();
+
 HWND DefaultWindow();
 
 HWND DrawingWindow();

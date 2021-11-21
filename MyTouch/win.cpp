@@ -41,6 +41,10 @@ LRESULT CALLBACK MsgProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
     return DefWindowProc(hWnd, msg, wParam, lParam);
 }
 
+LPCWSTR GetTouchClass() {
+    return szTouchClass;
+}
+
 WNDCLASSEXW* DefaultClass() {
     WNDCLASSEXW* wcex = new WNDCLASSEXW;
     wcex->cbSize = sizeof(WNDCLASSEX);
@@ -172,7 +176,7 @@ void InputAndCursor::Start() {
             if (tp.x < 10 && tp.y < 10) {
                 //KillTimer(hwnd, timer);
                 UnregisterPointerInputTarget(hwnd, PT_TOUCH);
-                CloseHandle(thread);
+                if (thread) CloseHandle(thread);
                 exit(0);
             }
             continue;

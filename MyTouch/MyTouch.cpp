@@ -36,6 +36,10 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	_In_opt_ HINSTANCE hPrevInstance,
 	_In_ LPWSTR    lpCmdLine,
 	_In_ int       nCmdShow) {
+	if (FindWindow(GetTouchClass(), 0)) {
+		MessageBox(0, L"Only one can be run", L"error", MB_ICONERROR | MB_TOPMOST);
+		exit(0);
+	}
 	try {
 		DocMakeFactory fa;
 		InjectMouse ijm;

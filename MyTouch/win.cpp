@@ -193,8 +193,8 @@ void InputAndCursor::Move(INT16 x, INT16 y) {
     hcur.cbSize = sizeof(hcur);
     GetCursorInfo(&hcur);*/
     HDC mdc = CreateCompatibleDC(hdc);
-    HBITMAP hbitmap = CreateCompatibleBitmap(hdc, ps.cx, ps.cy);
-    HGDIOBJ hobj = SelectObject(mdc, hbitmap);
+    //HBITMAP hbitmap = CreateCompatibleBitmap(hdc, ps.cx, ps.cy);
+    HGDIOBJ hobj = SelectObject(mdc, cbmp);
     POINT hp;
     GetCursorPos(&hp);
     //ShowCursor(1);
@@ -208,13 +208,13 @@ void InputAndCursor::Move(INT16 x, INT16 y) {
     /*SetCursorPos(hcur.ptScreenPos.x + x, hcur.ptScreenPos.y + y);
     CursorChange(&hcur);*/
     hp.x = hp.x - px, hp.y = hp.y - py;
-    DrawIconEx(mdc, 0, 0, cursor, 0, 0, 0, NULL, DI_IMAGE);
+    //DrawIconEx(mdc, 0, 0, cursor, 0, 0, 0, NULL, DI_IMAGE);
     //UpdateLayeredWindow(hwnd, hdc, &hcur.ptScreenPos, &ps, mdc, &psrc, 0, &blend, ULW_OPAQUE);
     //UpdateLayeredWindow(hwnd, hdc, &hcur.ptScreenPos, &ps, mdc, &psrc, 0, &blend, ULW_ALPHA);
     UpdateLayeredWindow(hwnd, hdc, &hp, &ps, mdc, &psrc, 0, &blend, ULW_ALPHA);
     SelectObject(hdc, hobj);
     DeleteObject(mdc);
-    DeleteObject(hbitmap);
+    //DeleteObject(hbitmap);
 }
 
 void InputAndCursor::Pos(INT16 x, INT16 y) {

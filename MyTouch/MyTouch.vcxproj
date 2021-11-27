@@ -226,12 +226,19 @@
     <ClInclude Include="module.h" />
     <ClInclude Include="parser.h" />
     <ClInclude Include="plant.h" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="type.h" />
     <ClInclude Include="widget.h" />
     <ClInclude Include="win.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="cpp.hint" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="MyTouch.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="ai5sc-jzc3f.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

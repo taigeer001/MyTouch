@@ -4,6 +4,7 @@
 #include <mutex>
 #include "helper.h"
 #include "type.h"
+#include "resource.h"
 
 LPCWSTR GetTouchClass();
 
@@ -18,6 +19,7 @@ protected:
 	HDC hdc;
 	HWND hwnd = 0;
 	HCURSOR cursor = nullptr;
+	HBITMAP cbmp = nullptr;
 	int px = 0, py = 0;
 	POINT psrc = { 0,0 };
 	SIZE ps = { 32, 32 };
@@ -35,6 +37,30 @@ public:
 	}
 	~InputAndCursor();
 	void Start() override;
+	forceinline void ChangeBitmap() {
+		auto hdc = GetDC(hwnd);
+		auto mdc = CreateCompatibleDC(hdc);
+		auto bmp = CreateCompatibleBitmap(hdc, ps.cx, ps.cy);
+		auto obj = SelectObject(mdc, bmp);
+#ifndef _WINDOWS
+		std::cout << std::hex << (uint)cursor << std::endl;
+#endif // !_WINDOWS
+		if ((uint)cursor == 0x10005) {
+			HICON icon = LoadIcon(GetModuleHandle(0), MAKEINTRESOURCE(IDI_ICON1));
+			DrawIconEx(mdc, 0, 0, icon, 9, 19, 0, NULL, DI_NORMAL);
+			DeleteObject(icon);
+			px = 5, py = 10;
+		}
+		else {
+			DrawIconEx(mdc, 0, 0, cursor, 0, 0, 0, NULL, DI_NORMAL);
+		}
+		SelectObject(mdc, obj);
+		DeleteObject(mdc);
+		DeleteObject(hdc);
+		HBITMAP t = cbmp;
+		cbmp = bmp;
+		DeleteObject(t);
+	}
 	forceinline byte CursorChange(CURSORINFO* ci) {
 #ifndef _WINDOWS
 		//std::cout << cursor << std::endl;
@@ -43,8 +69,8 @@ public:
 		ci->ptScreenPos.y = ci->ptScreenPos.y - py;
 		if (ci->hCursor && ci->hCursor != cursor) {
 			cursor = ci->hCursor;
-			switch ((uint)cursor) {
-			case 0x10005: px = py = 10;break;
+			/*switch ((uint)cursor) {
+			case 0x10005: px = 5, py = 10;break;
 			case 0x1001b:
 			case 0x10003: px = py = 0;break;
 			case 0x10009:
@@ -60,7 +86,12 @@ public:
 			case 0x1001F: px = 6, py = 0;break;
 			case 0x20607: px = 20, py = 0;break;
 			default:px = py = 0;
+			}*/
+			ICONINFO cs;
+			if (GetIconInfo(cursor, &cs)) {
+				px = cs.xHotspot, py = cs.yHotspot;
 			}
+			ChangeBitmap();
 			return 1;
 		}
 		return 0;

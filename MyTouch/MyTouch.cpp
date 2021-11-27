@@ -40,6 +40,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		MessageBox(0, L"Only one can be run", L"error", MB_ICONERROR | MB_TOPMOST);
 		exit(0);
 	}
+	SetPriorityClass(GetCurrentProcess(), REALTIME_PRIORITY_CLASS);
 	try {
 		DocMakeFactory fa;
 		InjectMouse ijm;

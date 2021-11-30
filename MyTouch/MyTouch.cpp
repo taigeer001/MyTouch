@@ -1,5 +1,6 @@
-﻿#include "plant.h"
-#include <iostream>
+﻿#include <iostream>
+#include <comdef.h>
+#include "plant.h"
 using namespace std;
 
 #ifndef _WINDOWS
@@ -40,13 +41,22 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		MessageBox(0, L"Only one can be run", L"error", MB_ICONERROR | MB_TOPMOST);
 		exit(0);
 	}
+	const WCHAR* cmd = (const WCHAR*)lpCmdLine;
+	const char* config;
+	if (wcslen(cmd) == 0) {
+		config = ".\\config.xml";
+	}
+	else {
+		_bstr_t b(cmd);
+		config = b;
+	}
 	SetPriorityClass(GetCurrentProcess(), REALTIME_PRIORITY_CLASS);
 	try {
 		DocMakeFactory fa;
 		InjectMouse ijm;
 		InjectKey ijk;
 		DocumentParser dp;
-		if (!dp.Open("C:\\Users\\zr\\Downloads\\1\\config.xml"))
+		if (!dp.Open(config))
 			throw L"open xml error";
 		fa.Default();
 		fa.Inject(&ijk);

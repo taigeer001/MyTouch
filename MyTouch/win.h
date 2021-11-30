@@ -46,7 +46,7 @@ public:
 		std::cout << std::hex << (uint)cursor << std::endl;
 #endif // !_WINDOWS
 		if ((UINT_PTR)cursor == 0x10005) {
-			HICON icon = LoadIcon(GetModuleHandle(0), MAKEINTRESOURCE(IDI_ICON1));
+			HICON icon = LoadIcon(GetModuleHandle(0), MAKEINTRESOURCE(IDI_ICON2));
 			DrawIconEx(mdc, 0, 0, icon, 9, 19, 0, NULL, DI_NORMAL);
 			DeleteObject(icon);
 			px = 5, py = 10;

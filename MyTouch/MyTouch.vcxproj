@@ -239,6 +239,7 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="ai5sc-jzc3f.ico" />
+    <Image Include="Pickin Time Win\Icons\Onion.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

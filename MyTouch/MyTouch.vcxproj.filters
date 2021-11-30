@@ -87,6 +87,9 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
+    <Image Include="Pickin Time Win\Icons\Onion.ico">
+      <Filter>资源文件</Filter>
+    </Image>
     <Image Include="ai5sc-jzc3f.ico">
       <Filter>资源文件</Filter>
     </Image>

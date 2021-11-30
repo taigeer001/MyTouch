@@ -1,6 +1,7 @@
 #include <mutex>
 #include <iostream>
 #include <fstream>
+#include "resource.h"
 #include "win.h"
 
 LPCWSTR szTitle = L"MyTouch", szTouchClass = L"ZrTouchClass", szDrawingClass = L"ZrDrawingClass";
@@ -52,7 +53,7 @@ WNDCLASSEXW* DefaultClass() {
     wcex->cbClsExtra = 0;
     wcex->cbWndExtra = 0;
     wcex->hInstance = GetModuleHandle(0);
-    wcex->hIcon = 0;
+    wcex->hIcon = LoadIcon(GetModuleHandle(0), MAKEINTRESOURCE(IDI_ICON1));
     wcex->hCursor = LoadCursor(NULL, IDC_ARROW);
     wcex->hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
     wcex->lpszMenuName = L"";

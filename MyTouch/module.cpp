@@ -26,14 +26,52 @@ void IKey::OnPaint(IGraphics* g) {
 	}
 }
 
+BinKey::~BinKey() {
+	SafeDeletes(downbin);
+	SafeDeletes(upbin);
+}
+
+void BinKey::Runbin(byte* bin) {
+	size_t i = 0;
+	while (byte b = bin[i]) {
+		switch (b) {
+		case 1:
+			keybd_event(bin[i + 1], 0, bin[i + 2], 0);
+			i += 3;
+			break;
+		case 2:
+			mouse_event(bin[i + 1], 0, 0, 0, EVENT_FID);
+			i += 2;
+			break;
+		default:
+			return;
+		}
+	}
+}
+
+void BinKey::DownCode(byte* d) {
+	downbin = d;
+}
+
+void BinKey::UpCode(byte* d) {
+	upbin = d;
+}
+
+FnKey::~FnKey() {
+	BinKey::~BinKey();
+}
+
+
 void FnKey::OnDown(InjectPoint*) {
 	*status = 1;
 	if (HasMerge()) CallMerge(status); else parent->OnPaint();
+	if (downbin) Runbin(downbin);
 }
 
 void FnKey::OnUp(InjectPoint*) {
 	*status = 0;
 	if (HasMerge()) CallMerge(status); else parent->OnPaint();
+	if (upbin) Runbin(upbin);
 }
 
 void Key::Code(byte c) {
@@ -96,6 +134,10 @@ void Capskey::Code(byte c) {
 	code = c;
 }
 
+Button::~Button() {
+	BinKey::~BinKey();
+}
+
 void Button::Scale(FLOAT v) {
 	Width(Width() * v);
 	Height(Height() * v);
@@ -146,6 +188,75 @@ void Symbol::OnPaint(IGraphics* g) {
 		g->DrawTextW(*pt ? name : name1, Rx() + g->FontSize() / 2.0f, Ry() - g->FontSize() / 1.6f, Width(), Height());
 	}
 }
+
+namespace BinParseer {
+	void Keybin(std::vector<byte>& b, byte c, byte t = 3) {
+		if ((t & 2) != 0) {
+			b.push_back(1);
+			b.push_back(c);
+			b.push_back(0);
+		}
+		if ((t & 1) != 0) {
+			b.push_back(1);
+			b.push_back(c);
+			b.push_back(KEYEVENTF_KEYUP);
+		}
+	}
+	void Mousebin(std::vector<byte>& b, byte c, byte t = 3) {
+		if ((t & 2) != 0) {
+			b.push_back(2);
+			b.push_back(c);
+		}
+		if ((t & 1) != 0) {
+			b.push_back(2);
+			b.push_back(c * 2);
+		}
+	}
+	byte Parsevalue(std::string& str, std::vector<byte>& b) {
+		size_t i = str.find(':', 0);
+		std::string name = str;
+		byte t = 0;
+		if (i >= str.size()) {
+			t = 3;
+		}
+		else {
+			name = str.substr(0, i);
+			std::string val = str.substr(i + 1, str.size());
+			if (val == "0") t = 1;
+			else if (val == "1")t = 2;
+			else if (val == "2")t = 3;
+		}
+		if (str == "m1") Mousebin(b, MOUSEEVENTF_LEFTDOWN, t);
+		else if (str == "m2") Mousebin(b, MOUSEEVENTF_RIGHTDOWN, t);
+		else if (str == "m3") Mousebin(b, MOUSEEVENTF_MIDDLEDOWN, t);
+		else {
+			int16 n = Keycode(name);
+			if (n == -1||n>0xFF) return 0;
+			Keybin(b, (byte)n, t);
+		}
+		return 1;
+	}
+	byte* Parsecode(const char* c) {
+		size_t len = strlen(c);
+		std::string str = "";
+		std::vector<byte> b;
+		for (size_t i = 0; i < len; i++) {
+			if (c[i] == ';') {
+				if (!Parsevalue(str, b))return nullptr;
+				str = "";
+				continue;
+			}
+			str += c[i];
+		}
+		if (!Parsevalue(str, b) || b.size() == 0)return nullptr;
+		byte* r = new byte[b.size() + 1];
+		for (size_t i = 0; i < b.size(); i++) r[i] = b[i];
+		r[b.size()] = 0;
+		b.clear();
+		return r;
+	}
+}
+
 PClass(WidgetBox) {
 public:
 	byte Is(pugi::xml_node & node)override {
@@ -190,10 +301,22 @@ public:
 	byte Is(pugi::xml_node & node)override {
 		return Equal(node.name(), "fn");
 	}
-	void* Create(pugi::xml_node & node) override {
+	void* Create(pugi::xml_node& node) override {
 		float32 w = node.attribute("width").as_float(46.0f);
 		float32 h = node.attribute("height").as_float(46.0f);
-		return new FnKey((uint16)w, (uint16)h, node.text().as_string());
+		byte* d1 = nullptr, * d2 = nullptr;
+		if (!node.attribute("down").empty()) {
+			d1 = BinParseer::Parsecode(node.attribute("down").as_string());
+			if (!d1) return nullptr;
+		}
+		if (!node.attribute("up").empty()) {
+			d1 = BinParseer::Parsecode(node.attribute("up").as_string());
+			if (!d1) return nullptr;
+		}
+		FnKey* fn = new FnKey((uint16)w, (uint16)h, node.text().as_string());
+		fn->DownCode(d1);
+		fn->UpCode(d2);
+		return fn;
 	}
 	InitTemplate(FnKey);
 };
@@ -205,11 +328,11 @@ public:
 	}
 	void* Create(pugi::xml_node& node) override {
 		int16 code = CodeOrKey(&node);
-		if (code < 0) return nullptr;
+		if (code < 0 || code>0xFF) return nullptr;
 		float32 w = node.attribute("width").as_float(46.0f);
 		float32 h = node.attribute("height").as_float(46.0f);
 		Key* t = new Key((uint16)w, (uint16)h, node.text().as_string());
-		t->Code(code);
+		t->Code((byte)code);
 		return t;
 	}
 	InitTemplate(Key);
@@ -255,9 +378,9 @@ public:
 	byte Is(pugi::xml_node & node)override {
 		return Equal(node.name(), "letter");
 	}
-	void* Create(pugi::xml_node & node) override {
-		byte code = CodeOrKey(&node);
-		if (code == 0) return nullptr;
+	void* Create(pugi::xml_node& node) override {
+		int16 code = CodeOrKey(&node);
+		if (code < 0 || code>0xFF) return nullptr;
 		float32 w = node.attribute("width").as_float(46.0f);
 		float32 h = node.attribute("height").as_float(46.0f);
 		Letter* t = new Letter(
@@ -265,7 +388,7 @@ public:
 			node.text().as_string(),
 			node.attribute("text").as_string()
 		);
-		t->Code(code);
+		t->Code((byte)code);
 		return t;
 	}
 	InitTemplate(Letter);
@@ -276,9 +399,9 @@ public:
 	byte Is(pugi::xml_node & node)override {
 		return Equal(node.name(), "symbol");
 	}
-	void* Create(pugi::xml_node & node) override {
-		byte code = CodeOrKey(&node);
-		if (code == 0) return nullptr;
+	void* Create(pugi::xml_node& node) override {
+		int16 code = CodeOrKey(&node);
+		if (code < 0 || code >0xFF) return nullptr;
 		float32 w = node.attribute("width").as_float(46.0f);
 		float32 h = node.attribute("height").as_float(46.0f);
 		Symbol* t = new Symbol(
@@ -286,7 +409,7 @@ public:
 			node.text().as_string(),
 			node.attribute("text").as_string()
 		);
-		t->Code(code);
+		t->Code((byte)code);
 		return t;
 	}
 	InitTemplate(Symbol);
@@ -297,13 +420,13 @@ public:
 	byte Is(pugi::xml_node & node)override {
 		return Equal(node.name(), "caps");
 	}
-	void* Create(pugi::xml_node & node) override {
-		byte code = CodeOrKey(&node);
-		if (code == 0) return nullptr;
+	void* Create(pugi::xml_node& node) override {
+		int16 code = CodeOrKey(&node);
+		if (code < 0 || code >0xFF) return nullptr;
 		float32 w = node.attribute("width").as_float(46.0f);
 		float32 h = node.attribute("height").as_float(46.0f);
 		Capskey* t = new Capskey((uint16)w, (uint16)h, node.text().as_string());
-		t->Code(code);
+		t->Code((byte)code);
 		return t;
 	}
 	InitTemplate(Capskey);
@@ -382,3 +505,4 @@ RClass(Symbol);
 PChild(Keypad, Symbol);
 RClass(Capskey);
 PChild(Keypad, Capskey);
+

@@ -109,9 +109,21 @@ public:
 	void OnPaint(IGraphics*) override;
 };
 
-class FnKey :public IKey {
+class BinKey {
+protected:
+	byte* downbin = nullptr;
+	byte* upbin = nullptr;
+	void Runbin(byte*);
+public:
+	~BinKey();
+	void DownCode(byte*);
+	void UpCode(byte*);
+};
+
+class FnKey :public IKey, public BinKey {
 public:
 	using IKey::IKey;
+	~FnKey();
 	void OnDown(InjectPoint*) override;
 	void OnUp(InjectPoint*)  override;
 };
@@ -203,7 +215,7 @@ public:
 	}
 };
 
-class Button :public WidgetHotspot, public IMergeNode {
+class Button :public WidgetHotspot, public IMergeNode, public BinKey {
 public:
 	int32* Ptr() override {
 		return &status;
@@ -217,12 +229,15 @@ public:
 	forceinline void OnDown(InjectPoint*) override {
 		status = 1;
 		if (HasMerge()) CallMerge(&status); else OnPaint();
+		if (downbin) Runbin(downbin);
 	}
 	forceinline void OnUp(InjectPoint*) override {
 		status = 0;
 		if (HasMerge()) CallMerge(&status); else OnPaint();
+		if (upbin) Runbin(upbin);
 	}
 	using WidgetHotspot::WidgetHotspot;
+	~Button();
 	void Scale(FLOAT);
 };
 

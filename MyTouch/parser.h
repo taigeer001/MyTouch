@@ -9,6 +9,8 @@
 
 int16 Keycode(const char*);
 
+int16 Keycode(std::string&);
+
 int16 CodeOrKey(pugi::xml_node*);
 
 float32 ScreenX(float32, pugi::xml_attribute*);

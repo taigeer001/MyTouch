@@ -37,6 +37,11 @@ int16 Keycode(const char* n) {
 	return keycode[t];
 }
 
+int16 Keycode(std::string& t) {
+	if (keycode.count(t) == 0) return -1;
+	return keycode[t];
+}
+
 int16 CodeOrKey(pugi::xml_node* node) {
 	if (node->attribute("key").empty()) {
 		return node->attribute("code").as_uint(0);

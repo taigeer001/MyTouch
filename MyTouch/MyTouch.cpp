@@ -15,7 +15,7 @@ int main()
 		//TestMouse ijm;
 		InjectKey ijk;
 		DocumentParser dp;
-		dp.Open("C:\\Users\\zr\\Downloads\\1\\config.xml");
+		dp.Open(".\\config.xml");
 		fa.Default();
 		fa.Inject(&ijk);
 		fa.Inject(&ijm);
